@@ -19,7 +19,7 @@ bcrypt = Bcrypt(app)
 HMAC_SECRET_KEY = b'123'
 
 # Agrega tu clave generada por Fernet aquí
-FERNET_KEY = b'Ka5ufAEw7DqQwAIDpcrlLmD-0tdPUsk8Tc2IrIOEFeY='  # Reemplázala con la clave generada
+FERNET_KEY = b'a4vwkPYGA1eljX1wdbyZ8p_epebfAD-3gRqnx9uhC_k='  # Reemplázala con la clave generada
 
 # Crea la instancia de Fernet
 fernet = Fernet(FERNET_KEY)
@@ -149,3 +149,4 @@ def handle_disconnect():
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)
+
