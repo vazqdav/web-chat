@@ -2,14 +2,24 @@ from flask import Flask, render_template, redirect, url_for, session, request, f
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
+import os
+import eventlet
 
+# Inicializa eventlet para manejar WebSockets correctamente
+eventlet.monkey_patch()
+
+# Configuración de Flask
 app = Flask(__name__)
 
-app.secret_key = "advpjsh"
-client = MongoClient("mongodb+srv://davidnet:chetocheto@cluster0.0fkdavr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+# Clave secreta de Flask, ahora se toma de variables de entorno
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'clave_secreta_por_defecto')
+
+# Conexión a MongoDB Atlas, usa el URL de conexión desde variables de entorno
+client = MongoClient(os.getenv('MONGO_URI'))
 db = client['Chat']
 
-socketio = SocketIO(app)
+# Configuración de SocketIO
+socketio = SocketIO(app, async_mode='eventlet')
 bcrypt = Bcrypt(app)
 
 @app.route('/')
@@ -83,20 +93,11 @@ def chat():
     
     return render_template('chat.html', username=session['username'], messages=message_list, users=user_list)
 
-@app.route('/profile/<username>')
-def view_profile(username):
-    user = db.users.find_one({'username': username})
-    if user:
-        return render_template('profile.html', user=user)
-    else:
-        flash('Usuario no encontrado.')
-        return redirect(url_for('chat'))
-
 @socketio.on('message')
 def handle_message(msg):
     username = session.get('username')
     if username:
-        # Almacena el mensaje en texto plano en la base de datos
+        # Guarda el mensaje en la base de datos en texto plano
         db.messages.insert_one({'username': username, 'text': msg['text']})
 
         # Envía el mensaje a todos los usuarios conectados
@@ -123,4 +124,4 @@ def handle_disconnect():
         print('Usuario desconectado, pero no hay sesión activa.')
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, use_reloader=False)  # Usamos 'use_reloader=False' para evitar problemas con eventlet
