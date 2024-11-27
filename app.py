@@ -2,9 +2,6 @@ from flask import Flask, render_template, redirect, url_for, session, request, f
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
-from cryptography.fernet import Fernet  # Importamos Fernet
-import hmac
-import hashlib
 
 app = Flask(__name__)
 
@@ -14,15 +11,6 @@ db = client['Chat']
 
 socketio = SocketIO(app)
 bcrypt = Bcrypt(app)
-
-# Clave secreta para generar y verificar HMAC
-HMAC_SECRET_KEY = b'123'
-
-# Agrega tu clave generada por Fernet aquí
-FERNET_KEY = b'VuhEoPFMuFxxbO_kBuhauHoLddSvfwnwiKCUsycw0Ug='  # Reemplázala con la clave generada
-
-# Crea la instancia de Fernet
-fernet = Fernet(FERNET_KEY)
 
 @app.route('/')
 def home():
@@ -91,7 +79,7 @@ def chat():
 
     # Recupera mensajes anteriores de la base de datos
     messages = db.messages.find()
-    message_list = [{'username': msg['username'], 'text': fernet.decrypt(msg['text']).decode('utf-8'), 'mac': msg['mac']} for msg in messages]
+    message_list = [{'username': msg['username'], 'text': msg['text']} for msg in messages]
     
     return render_template('chat.html', username=session['username'], messages=message_list, users=user_list)
 
@@ -108,24 +96,11 @@ def view_profile(username):
 def handle_message(msg):
     username = session.get('username')
     if username:
-        # Clave secreta compartida (asegúrate de manejar esto de manera segura en producción)
-        secret_key = b'secret_key'
-
-        # Generar la firma HMAC para el mensaje
-        message_text = msg['text'].encode('utf-8')  # Asegúrate de codificar el texto
-        mac = hmac.new(secret_key, message_text, hashlib.sha256).hexdigest()
-
-        # Encriptar el mensaje con Fernet antes de almacenarlo
-        encrypted_message = fernet.encrypt(message_text)
-
-        # Imprimir la firma generada en la terminal
-        print(f"Firma generada para el mensaje: {mac}")
-
-        # Guarda el mensaje en la base de datos junto con la firma y el mensaje encriptado
-        db.messages.insert_one({'username': username, 'text': encrypted_message, 'mac': mac})
+        # Almacena el mensaje en texto plano en la base de datos
+        db.messages.insert_one({'username': username, 'text': msg['text']})
 
         # Envía el mensaje a todos los usuarios conectados
-        send({'username': username, 'text': fernet.decrypt(encrypted_message).decode('utf-8'), 'mac': mac}, broadcast=True)
+        send({'username': username, 'text': msg['text']}, broadcast=True)
 
 @socketio.on('connect')
 def handle_connect():
