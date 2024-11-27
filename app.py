@@ -19,7 +19,7 @@ bcrypt = Bcrypt(app)
 HMAC_SECRET_KEY = b'123'
 
 # Agrega tu clave generada por Fernet aquí
-FERNET_KEY = b'WOLrKb5isgFQ5guZsn03XUtI6YFjjh7JzNDjKGIOsQA='  # Reemplázala con la clave generada
+FERNET_KEY = b'Ka5ufAEw7DqQwAIDpcrlLmD-0tdPUsk8Tc2IrIOEFeY='  # Reemplázala con la clave generada
 
 # Crea la instancia de Fernet
 fernet = Fernet(FERNET_KEY)
