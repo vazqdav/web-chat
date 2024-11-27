@@ -112,7 +112,7 @@ def handle_message(msg):
         secret_key = b'secret_key'
 
         # Generar la firma HMAC para el mensaje
-        message_text = msg['text'].encode('utf-8')  # Asegúrate de codificar el texto
+        message_text = msg['text'].encode('utf-8') 
         mac = hmac.new(secret_key, message_text, hashlib.sha256).hexdigest()
 
         # Encriptar el mensaje con Fernet antes de almacenarlo
