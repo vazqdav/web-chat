@@ -5,7 +5,8 @@ from pymongo import MongoClient
 from cryptography.fernet import Fernet  # Importamos Fernet
 import hmac
 import hashlib
-
+import eventlet
+eventlet.monkey_patch()
 
 app = Flask(__name__)
 
