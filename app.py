@@ -1,5 +1,3 @@
-import eventlet
-eventlet.monkey_patch()
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
@@ -7,6 +5,7 @@ from pymongo import MongoClient
 from cryptography.fernet import Fernet  # Importamos Fernet
 from flask import copy_current_request_context
 import hmac
+import os
 import hashlib
 
 app = Flask(__name__)
@@ -154,5 +153,5 @@ def handle_disconnect():
     else:
         print('Usuario desconectado, pero no hay sesión activa.')
 
-if __name__ == '__main__':
-    socketio.run(app, debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
