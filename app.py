@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()  # Debe ir al principio del archivo
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
@@ -6,8 +8,6 @@ from cryptography.fernet import Fernet
 import hmac
 import hashlib
 import os
-import eventlet
-eventlet.monkey_patch()
 
 app = Flask(__name__)
 
