@@ -1,3 +1,6 @@
+import eventlet
+# Inicializa eventlet para manejar WebSockets correctamente
+eventlet.monkey_patch()
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
@@ -6,10 +9,6 @@ from cryptography.fernet import Fernet  # Importamos Fernet
 import hmac
 import hashlib
 import os
-import eventlet
-
-# Inicializa eventlet para manejar WebSockets correctamente
-eventlet.monkey_patch()
 
 # Configuración de Flask
 app = Flask(__name__)
