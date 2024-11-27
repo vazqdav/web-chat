@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniChat</title>
+    <link rel="icon" href="/static/img/Logotib.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/static/chat.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <style>
+        .status-circle {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+            vertical-align: middle;
+            background-color: green;
+        }
+
+        .status-circle.offline {
+            background-color: gray; /* Cambié a gris para los usuarios desconectados */
+        }
+
+        .status-circle.current-user {
+            background-color: blue; /* Color especial para el usuario actual */
+        }
+
+        .title {
+            text-align: center;
+            font-size: 1.5em;
+            margin: 10px 0;
+        }
+
+        .notification-icon {
+            position: relative;
+            margin-left: 10px;
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 5px;
+            font-size: 0.8em;
+        }
+
+        .unread-message {
+            color: red;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .chat-window {
+            position: relative;
+        }
+
+        /* Modificaciones para alinear el nombre y el icono de estado */
+        .contact-info {
+            display: flex;
+            justify-content: space-between; /* Alinea el nombre a la izquierda y el icono a la derecha */
+            align-items: center;
+            width: 100%;
+        }
+
+        .contact-name-wrapper {
+            display: flex;
+            justify-content: space-between; /* Alinea el nombre y el estado */
+            width: 100%;
+        }
+
+        .contact-name {
+            flex-grow: 1; /* Hace que el nombre ocupe el espacio disponible */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-list">
+        <div class="header">
+            <div class="avatar">{{ session['username'][0] }}</div>
+            <div class="header-icons">
+                <i class="icon fas fa-users" onclick="showSection('contacts')"></i>
+                <a href="/logout" class="logout-button">
+                    <i class="icon fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="title">
+            UniChat
+            <div class="status-circle {{ 'current-user' if session['username'] == current_user else '' }}"></div>
+        </div>
+
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar usuarios" id="search-input" oninput="filterUsers()">
+        </div>
+
+        <div id="contacts" class="section">
+            {% for user in users %}
+                <div class="contact-item" onclick="location.href='{{ url_for('view_profile', username=user['username']) }}'" data-name="{{ user['first_name'] }} {{ user['last_name'] }}">
+                    <div class="avatar">{{ user['first_name'][0] }}</div>
+                    <div class="contact-info">
+                        <div class="contact-name-wrapper">
+                            <span class="contact-name">{{ user['first_name'] }} {{ user['last_name'] }}</span>
+                            {% if user['username'] == session['username'] %}
+                                <div class="status-circle current-user"></div>
+                            {% else %}
+                                {% if user['is_connected'] %}
+                                    <div class="status-circle"></div>
+                                {% else %}
+                                    <div class="status-circle offline"></div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="chat-window">
+        <div class="header">
+            <div class="avatar">{{ session['username'][0] }}</div>
+            <div class="chat-name">UniChat</div>
+            <div class="header-icons">
+                <i class="icon fas fa-ellipsis-v"></i>
+            </div>
+        </div>
+
+        <div id="unread-messages" class="unread-messages" style="display: none;"></div>
+
+        <div class="messages" id="messages">
+            {% for message in messages %}
+                <div class="message {{ 'sent' if message['username'] == session['username'] else 'received' }}">
+                    {% if message['username'] == session['username'] %}
+                        {{ message['text'] }} <strong>{{ message['username'] }}</strong>
+                    {% else %}
+                        <strong>{{ message['username'] }}</strong>: {{ message['text'] }}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <form id="message-form" class="input-area">
+            <i class="icon far fa-smile" onclick="toggleEmojiPicker()"></i>
+            <i class="icon fas fa-paperclip" onclick="toggleFilePicker()"></i>
+            <input type="text" id="message-input" placeholder="Escribe un mensaje..." required>
+            <i class="icon fas fa-microphone"></i>
+        </form>
+    </div>
+
+    <script>
+        const socket = io();
+        const currentUser = "{{ session['username'] }}";
+
+        const form = document.getElementById('message-form');
+        const input = document.getElementById('message-input');
+        const messages = document.getElementById('messages');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (input.value) {
+                const newMessageDiv = document.createElement('div');
+                newMessageDiv.className = 'message sent';
+                newMessageDiv.innerHTML = `${input.value} <strong>${currentUser}</strong>`;
+                messages.appendChild(newMessageDiv);
+                messages.scrollTop = messages.scrollHeight; // Scroll to bottom
+                
+                socket.emit('message', { username: currentUser, text: input.value });
+                input.value = '';
+            }
+        });
+
+        socket.on('message', function(msg) {
+            if (msg.username !== currentUser) { // Solo agrega mensajes que no son del usuario actual
+                const newMessageDiv = document.createElement('div');
+                newMessageDiv.className = 'message received';
+                newMessageDiv.innerHTML = `<strong>${msg.username}</strong>: ${msg.text}`;
+                messages.appendChild(newMessageDiv);
+                messages.scrollTop = messages.scrollHeight; // Scroll to bottom
+            }
+        });
+    </script>
+
+    <script>
+        // Función de búsqueda
+        function filterUsers() {
+            const input = document.getElementById('search-input').value.toLowerCase();
+            const contacts = document.querySelectorAll('.contact-item');
+            contacts.forEach(contact => {
+                const name = contact.getAttribute('data-name').toLowerCase();
+                if (name.includes(input)) {
+                    contact.style.display = 'flex';  // Muestra el usuario
+                } else {
+                    contact.style.display = 'none';  // Oculta el usuario
+                }
+            });
+        }
+    </script>
+</body>
+</html>

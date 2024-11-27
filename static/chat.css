@@ -1,0 +1,149 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    display: flex;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.chat-list {
+    width: 30%;
+    background-color: #ffffff;
+    border-right: 1px solid #d1d7db;
+    overflow-y: auto;
+}
+
+.chat-window {
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: #ffffff;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.search-bar {
+    padding: 10px;
+    position: relative;
+}
+
+.search-bar input {
+    width: 100%;
+    outline: none;
+    padding: 8px 8px 8px 35px;
+    border: none;
+    border-radius: 19px;
+    background-color: #f0f2f5;
+}
+
+.search-bar i {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #54656f;
+}
+
+.contact-item {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #f0f2f5;
+    cursor: pointer;
+    align-items: center;
+}
+
+.contact-item:hover {
+    background-color: #f5f6f6;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background-color: #dfe5e7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.contact-info {
+    flex-grow: 1;
+}
+
+.contact-name {
+    font-weight: bold;
+}
+
+.contact-status {
+    color: #8696a0;
+    font-size: 0.9em;
+}
+
+.messages {
+    flex-grow: 1;
+    background-color: #efeae2;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.message {
+    max-width: 60%;
+    padding: 8px 12px;
+    border-radius: 7.5px;
+    margin-bottom: 10px;
+}
+
+.received {
+    background-color: #ffffff;
+    align-self: flex-start;
+}
+
+.sent {
+    background-color: #d9fdd3;
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+.input-area {
+    background-color: #f0f2f5;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.input-area input {
+    flex-grow: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    margin: 0 10px;
+}
+
+.icon {
+    color: #54656f;
+    font-size: 1.5em;
+    margin: 0 10px;
+    cursor: pointer;
+}
+
+.header-icons {
+    display: flex;
+}
+
+.header-icons .icon {
+    margin-left: 15px;
+}
+

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/static/img/Logotib.png" type="image/png">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <title>Perfil de: {{ user.username }}</title>
+    <link rel="stylesheet" href="/static/profile.css">
+</head>
+<body>
+    <section>
+        <div class="card">
+            <div class="top">
+                <span>{{ user.first_name }} {{ user.last_name }}</span>
+                <i class="bx bx-dots-vertical-rounded"></i>
+                <p>Perfil</p>
+            </div>
+
+            <div class="middle">
+                <div class="left">
+                    <img src="/static/img/UtaL.png" alt="">
+                </div>
+                <div class="right">
+                    <label for="">Usuario:</label>
+                    <div>
+                        <ul>
+                            <li>{{ user.username }}</li>
+                            <li>{{ user.email }}</li>
+                            <li>{{ user.matricula }}</li>
+                        </ul>
+                    </div>
+                    <div class="social-icon">
+                        <span><i class="bx bxl-facebook"></i></span>
+                        <span><i class="bx bxl-instagram"></i></span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="bottom">
+                <input type="submit" class="btn" value="Volver" onclick="goBack()">
+            </div>            
+        </div>
+    </section>
+    <script>
+        function goBack() {
+            window.history.back(); // O también puedes usar window.history.go(-1);
+        }
+    </script>    
+</body>
+</html>

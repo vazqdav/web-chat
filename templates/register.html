@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="/static/register.css">
+    <link rel="icon" href="/static/img/Logotib.png">
+    <title>Registro</title>
+</head>
+<body>
+    <div class="container-form">
+        <div class="information">
+            <div class="info-childs">
+                <h2>Bienvenido</h2>
+                <div class="contenedor">
+                    <img src="/static/img/UtaL.png" class="img-log" style="background-size: cover;">
+                    <img src="/static/img/LogoTib.png" class="img-fluid">
+                </div>
+                <p>Para unirte a nuestra comunidad por favor Inicia Sesion con tus datos</p>
+                <a href="{{ url_for('home') }}">
+                    <input type="button" value="Iniciar Sesion">
+                </a>
+            </div>
+        </div>
+        <div class="form-information">
+            <div class="form-information-childs">
+                <h2 style="margin: 20px;">Crear una cuenta</h2>
+                <form action="{{ url_for('register') }}" method="post" style="width: 310px;">
+                    <label>
+                        <i class='bx bx-user' ></i>
+                        <input type="text" name="username" placeholder="Usuario" required>
+                    </label>
+                    <label>
+                        <i class='bx bx-pencil'></i>
+                        <input type="text" name="first_name" placeholder="Nombre" required>
+                    </label>
+                    <label>
+                        <i class='bx bx-id-card'></i>
+                        <input type="text" name="last_name" placeholder="Apellidos" required>
+                    </label>
+                    <label>
+                        <i class='bx bx-envelope'></i>
+                        <input type="email" name="email"  placeholder="Correo Electronico" required>
+                    </label>
+                    <label>
+                        <i class='bx bx-lock-alt' ></i>
+                        <input type="password" name="password" placeholder="Contraseña" required>
+                    </label>
+                    <label>
+                        <i class='bx bx-book'></i>
+                        <input type="number" name="matricula" placeholder="Matricula" required>
+                    </label>
+                    <label>
+                        <i class='bx bx-group'></i>
+                        <input type="text" name="grupo" placeholder="Grupo" required>
+                    </label>
+                    <input type="submit" value="Ragistrarse">
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
