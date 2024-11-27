@@ -94,8 +94,9 @@ def chat():
     # Recupera mensajes anteriores de la base de datos
     messages = db.messages.find()
     message_list = [{'username': msg['username'], 'text': fernet.decrypt(msg['text']).decode('utf-8'), 'mac': msg['mac']} for msg in messages]
-    
+
     return render_template('chat.html', username=session['username'], messages=message_list, users=user_list)
+
 
 @app.route('/profile/<username>')
 def view_profile(username):
@@ -110,24 +111,22 @@ def view_profile(username):
 def handle_message(msg):
     username = session.get('username')
     if username:
-        # Clave secreta compartida (asegúrate de manejar esto de manera segura en producción)
+        # Clave secreta compartida
         secret_key = b'secret_key'
 
         # Generar la firma HMAC para el mensaje
-        message_text = msg['text'].encode('utf-8')  # Asegúrate de codificar el texto
+        message_text = msg['text'].encode('utf-8')
         mac = hmac.new(secret_key, message_text, hashlib.sha256).hexdigest()
 
         # Encriptar el mensaje con Fernet antes de almacenarlo
         encrypted_message = fernet.encrypt(message_text)
 
-        # Imprimir la firma generada en la terminal
-        print(f"Firma generada para el mensaje: {mac}")
-
-        # Guarda el mensaje en la base de datos junto con la firma y el mensaje encriptado
+        # Guarda el mensaje en la base de datos junto con la firma
         db.messages.insert_one({'username': username, 'text': encrypted_message, 'mac': mac})
 
         # Envía el mensaje a todos los usuarios conectados
         send({'username': username, 'text': fernet.decrypt(encrypted_message).decode('utf-8'), 'mac': mac}, broadcast=True)
+
 
 @socketio.on('connect')
 def handle_connect():
