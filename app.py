@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
@@ -5,8 +7,7 @@ from pymongo import MongoClient
 from cryptography.fernet import Fernet  # Importamos Fernet
 import hmac
 import hashlib
-import eventlet
-eventlet.monkey_patch()
+
 
 app = Flask(__name__)
 
