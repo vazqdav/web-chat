@@ -8,7 +8,6 @@ from cryptography.fernet import Fernet  # Importamos Fernet
 import hmac
 import hashlib
 
-
 app = Flask(__name__)
 
 app.secret_key = "advpjsh"
@@ -95,10 +94,10 @@ def chat():
     # Recupera mensajes anteriores de la base de datos
     messages = db.messages.find()
     message_list = [{'username': msg['username'], 'text': fernet.decrypt(msg['text']).decode('utf-8'), 'mac': msg['mac']} for msg in messages]
-
+    
     return render_template('chat.html', username=session['username'], messages=message_list, users=user_list)
 
-@app.route('/profile/<username>')  
+@app.route('/profile/<username>')
 def view_profile(username):
     user = db.users.find_one({'username': username})
     if user:
