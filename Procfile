@@ -1,2 +1,3 @@
-gunicorn -w 2 -k eventlet --timeout 120 --log-level debug app:app
+gunicorn -w 4 -k eventlet --timeout 60 --log-level debug app:app
+
 
