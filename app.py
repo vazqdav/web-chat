@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, session, request, f
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
-from cryptography.fernet import Fernet  # Importamos Fernet
+from cryptography.fernet import Fernet  # Fernet
 import hmac
 import hashlib
 
@@ -19,7 +19,7 @@ bcrypt = Bcrypt(app)
 HMAC_SECRET_KEY = b'123'
 
 # Agrega tu clave generada por Fernet aquí
-FERNET_KEY = b'a4vwkPYGA1eljX1wdbyZ8p_epebfAD-3gRqnx9uhC_k='  # Reemplázala con la clave generada
+FERNET_KEY = b'a4vwkPYGA1eljX1wdbyZ8p_epebfAD-3gRqnx9uhC_k='  # clave para FERNET generada
 
 # Crea la instancia de Fernet
 fernet = Fernet(FERNET_KEY)
@@ -108,7 +108,7 @@ def view_profile(username):
 def handle_message(msg):
     username = session.get('username')
     if username:
-        # Clave secreta compartida (asegúrate de manejar esto de manera segura en producción)
+     
         secret_key = b'secret_key'
 
         # Generar la firma HMAC para el mensaje
