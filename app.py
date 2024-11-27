@@ -1,6 +1,3 @@
-import eventlet
-# Inicializa eventlet para manejar WebSockets correctamente
-eventlet.monkey_patch()
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
@@ -8,27 +5,23 @@ from pymongo import MongoClient
 from cryptography.fernet import Fernet  # Importamos Fernet
 import hmac
 import hashlib
-import os
 
-# Configuración de Flask
 app = Flask(__name__)
 
-# Clave secreta de Flask, ahora se toma de variables de entorno
-app.secret_key = os.getenv('FLASK_SECRET_KEY', 'clave_secreta_por_defecto')
-
-# Conexión a MongoDB Atlas, usa el URL de conexión desde variables de entorno
-client = MongoClient(os.getenv('MONGO_URI'))
+app.secret_key = "advpjsh"
+client = MongoClient("mongodb+srv://davidnet:chetocheto@cluster0.0fkdavr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['Chat']
 
-# Configuración de SocketIO
-socketio = SocketIO(app, async_mode='eventlet')
+socketio = SocketIO(app)
 bcrypt = Bcrypt(app)
 
 # Clave secreta para generar y verificar HMAC
 HMAC_SECRET_KEY = b'123'
 
-# Clave de Fernet para cifrado, debería estar en una variable de entorno
-FERNET_KEY = os.getenv('FERNET_KEY', 'clave_fernet_por_defecto')
+# Agrega tu clave generada por Fernet aquí
+FERNET_KEY = b'WOLrKb5isgFQ5guZsn03XUtI6YFjjh7JzNDjKGIOsQA='  # Reemplázala con la clave generada
+
+# Crea la instancia de Fernet
 fernet = Fernet(FERNET_KEY)
 
 @app.route('/')
@@ -155,4 +148,4 @@ def handle_disconnect():
         print('Usuario desconectado, pero no hay sesión activa.')
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, use_reloader=False)  # Usamos 'use_reloader=False' para evitar problemas con eventlet
+    socketio.run(app, debug=True)
