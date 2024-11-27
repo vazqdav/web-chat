@@ -1,1 +1,1 @@
-web: gunicorn -k eventlet -w 1 --bind 0.0.0.0:$PORT app:app
+gunicorn -w 2 -k sync --timeout 120 --log-level debug app:app
