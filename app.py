@@ -1,3 +1,5 @@
+from gevent import monkey
+monkey.patch_all()
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
