@@ -1,30 +1,29 @@
 import eventlet
-eventlet.monkey_patch()  # Debe ir al principio del archivo
+eventlet.monkey_patch()
 from flask import Flask, render_template, redirect, url_for, session, request, flash
 from flask_socketio import SocketIO, send
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet  # Importamos Fernet
 import hmac
 import hashlib
-import os
 
 app = Flask(__name__)
 
-# Clave secreta para sesiones de Flask
 app.secret_key = "advpjsh"
-
-# Conexión con MongoDB
 client = MongoClient("mongodb+srv://davidnet:chetocheto@cluster0.0fkdavr.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 db = client['Chat']
 
-# Configuración de Flask-SocketIO
-socketio = SocketIO(app, cors_allowed_origins="*")  # Habilitar CORS para permitir conexiones desde cualquier origen
+socketio = SocketIO(app)
 bcrypt = Bcrypt(app)
 
-# Clave secreta para HMAC y Fernet
+# Clave secreta para generar y verificar HMAC
 HMAC_SECRET_KEY = b'123'
-FERNET_KEY = b'WOLrKb5isgFQ5guZsn03XUtI6YFjjh7JzNDjKGIOsQA='  # Reemplázala con tu clave generada
+
+# Agrega tu clave generada por Fernet aquí
+FERNET_KEY = b'WOLrKb5isgFQ5guZsn03XUtI6YFjjh7JzNDjKGIOsQA='  # Reemplázala con la clave generada
+
+# Crea la instancia de Fernet
 fernet = Fernet(FERNET_KEY)
 
 @app.route('/')
@@ -35,7 +34,7 @@ def home():
 def login():
     username = request.form['username']
     password = request.form['password']
-    user = db.users.find_one({'username': username})
+    user = db.users.find_one({'username': username})  # Busca el usuario en MongoDB
 
     if user and bcrypt.check_password_hash(user['password'], password):
         session['username'] = username
@@ -55,7 +54,7 @@ def register():
         matricula = request.form['matricula']
         grupo = request.form['grupo']
 
-        # Verifica si el usuario ya existe
+        # Verifica si el usuario ya existe en la base de datos
         if db.users.find_one({'username': username}):
             flash('El nombre de usuario ya está en uso.')
             return redirect(url_for('register'))
@@ -63,7 +62,7 @@ def register():
         # Hashea la contraseña
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-        # Inserta el nuevo usuario
+        # Inserta el nuevo usuario en la base de datos
         db.users.insert_one({
             'username': username,
             'first_name': first_name,
@@ -80,57 +79,75 @@ def register():
 
 @app.route('/logout')
 def logout():
-    session.pop('username', None)
-    return redirect(url_for('home'))
+    session.pop('username', None)  # Elimina la sesión del usuario
+    return redirect(url_for('home'))  # Redirige a la página de inicio
 
 @app.route('/chat')
 def chat():
     if 'username' not in session:
         return redirect(url_for('home'))
 
+    # Recupera los usuarios conectados de la base de datos
     users = db.users.find()
     user_list = [{'username': user['username'], 'first_name': user.get('first_name', ''), 'last_name': user.get('last_name', ''), 'is_connected': user.get('is_connected', False)} for user in users]
 
-    # Recupera mensajes de la base de datos
+    # Recupera mensajes anteriores de la base de datos
     messages = db.messages.find()
     message_list = [{'username': msg['username'], 'text': fernet.decrypt(msg['text']).decode('utf-8'), 'mac': msg['mac']} for msg in messages]
-
+    
     return render_template('chat.html', username=session['username'], messages=message_list, users=user_list)
+
+@app.route('/profile/<username>')
+def view_profile(username):
+    user = db.users.find_one({'username': username})
+    if user:
+        return render_template('profile.html', user=user)
+    else:
+        flash('Usuario no encontrado.')
+        return redirect(url_for('chat'))
 
 @socketio.on('message')
 def handle_message(msg):
     username = session.get('username')
     if username:
-        message_text = msg['text'].encode('utf-8')
-        mac = hmac.new(HMAC_SECRET_KEY, message_text, hashlib.sha256).hexdigest()
+        # Clave secreta compartida (asegúrate de manejar esto de manera segura en producción)
+        secret_key = b'secret_key'
 
-        # Encriptamos el mensaje antes de guardarlo
+        # Generar la firma HMAC para el mensaje
+        message_text = msg['text'].encode('utf-8')  # Asegúrate de codificar el texto
+        mac = hmac.new(secret_key, message_text, hashlib.sha256).hexdigest()
+
+        # Encriptar el mensaje con Fernet antes de almacenarlo
         encrypted_message = fernet.encrypt(message_text)
 
-        # Guardamos el mensaje en la base de datos
+        # Imprimir la firma generada en la terminal
+        print(f"Firma generada para el mensaje: {mac}")
+
+        # Guarda el mensaje en la base de datos junto con la firma y el mensaje encriptado
         db.messages.insert_one({'username': username, 'text': encrypted_message, 'mac': mac})
 
-        # Enviar el mensaje en texto claro a todos los clientes conectados
+        # Envía el mensaje a todos los usuarios conectados
         send({'username': username, 'text': fernet.decrypt(encrypted_message).decode('utf-8'), 'mac': mac}, broadcast=True)
 
 @socketio.on('connect')
 def handle_connect():
     username = session.get('username')
     if username:
+        # Marca al usuario como conectado en la base de datos
         db.users.update_one({'username': username}, {'$set': {'is_connected': True}})
-        print(f"Usuario {username} conectado.")
+        print('Usuario conectado:', username)
     else:
-        print('Usuario conectado sin sesión activa.')
+        print('Usuario conectado, pero no hay sesión activa.')
 
 @socketio.on('disconnect')
 def handle_disconnect():
     username = session.get('username')
     if username:
+        # Marca al usuario como desconectado en la base de datos
         db.users.update_one({'username': username}, {'$set': {'is_connected': False}})
-        print(f"Usuario {username} desconectado.")
+        print('Usuario desconectado:', username)
     else:
-        print('Usuario desconectado sin sesión activa.')
+        print('Usuario desconectado, pero no hay sesión activa.')
 
 if __name__ == '__main__':
-    port = os.getenv('PORT', 5000)  # Usamos el puerto proporcionado por Render
-    socketio.run(app, host='0.0.0.0', port=port)
+    socketio.run(app, debug=True)
